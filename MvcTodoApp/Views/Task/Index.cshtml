@@ -1,0 +1,73 @@
+﻿@model MvcTodoApp.ViewModels.TaskViewModel
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tasks</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="taskList">
+        @foreach (var task in Model.Tasks)
+        {
+            <tr data-id="@task.Id">
+                <td>@task.Description</td>
+                <td><button type="button" class="removebtn">Remove</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<br />
+<label>Total tasks to be done:</label>
+<input type="text" id="totaltasks" readonly="readonly" value="@Model.TotalTasks" />
+<br />
+<label>New Task:</label>
+<input type="text" id="newtask" />
+<button type="button" id="addbtn">Add new</button>
+
+@section scripts {
+   
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#addbtn').click(function () {
+                var newTask = $('#newtask').val();
+                if (newTask) {
+                    $.ajax({
+                        url: '@Url.Action("AddTask", "Task")',
+                        type: 'POST',
+                        data: { description: newTask },
+                        success: function (task) {
+                            var newRow = `<tr data-id="${task.Id}">
+                                            <td>${task.Description}</td>
+                                            <td><button type="button" class="removebtn">Remove</button></td>
+                                          </tr>`;
+                            $('#taskList').append(newRow);
+                            $('#totaltasks').val(parseInt($('#totaltasks').val()) + 1);
+                            $('#newtask').val('');
+                        }
+                    });
+                }
+            });
+
+            $(document).on('click', '.removebtn', function () {
+                var row = $(this).closest('tr');
+                var id = row.data('id');
+                $.ajax({
+                    url: '@Url.Action("RemoveTask", "Task")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function () {
+                        row.remove();
+                        $('#totaltasks').val(parseInt($('#totaltasks').val()) - 1);
+                    }
+                });
+            });
+        });
+    </script>
+}
